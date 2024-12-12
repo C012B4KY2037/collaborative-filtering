@@ -16,7 +16,6 @@ app = FastAPI()
 model_path = "./model/collaborative_filtering.keras"
 try:
     recommender_model = load_model(model_path)
-    #recommender_model = tf.keras.models.load_model(model_path)
 except Exception as e:
     raise RuntimeError(f"Error loading model: {e}")
 
@@ -45,28 +44,21 @@ class RecommendationResponse(BaseModel):
     user_id: str
     recommended_books: list
 
-@app.get("/recommend", response_model=RecommendationResponse)
-def recommend_books():
-    """
-    Automatically generate book recommendations for a randomly chosen user.
-    """
-    # Randomly select a user
-    user_id = random.choice(df['User-ID'].unique())
-
-    # Check if the user exists in the encoders
-    if user_id not in encode_user_id1:
-        raise HTTPException(status_code=404, detail="User ID not found")
+@app.get("/recommend_random", response_model=RecommendationResponse)
+def recommend_books_random():
+    # Select a random user ID from the dataset
+    random_user_id = random.choice(list(encode_user_id1.keys()))
 
     # Encode the user
-    user_encoded = encode_user_id1[user_id]
+    user_encoded = encode_user_id1[random_user_id]
 
     # Identify unrated books
     all_books = list(encode_title1.keys())
-    rated_books = df[df['User-ID'] == user_id]['Book-Title'].tolist()
+    rated_books = df[df['User-ID'] == random_user_id]['Book-Title'].tolist()
     unrated_books = [book for book in all_books if book not in rated_books]
 
     if not unrated_books:
-        return RecommendationResponse(user_id=user_id, recommended_books=[])
+        return RecommendationResponse(user_id=random_user_id, recommended_books=[])
 
     # Encode unrated books
     unrated_books_encoded = [[encode_title1[book]] for book in unrated_books]
@@ -77,6 +69,15 @@ def recommend_books():
 
     # Get top 10 recommendations
     top_indices = predicted_ratings.argsort()[-10:][::-1]
-    recommendations = [encoded_title2[unrated_books_encoded[idx][0]] for idx in top_indices]
+    recommendations = []
+    for idx in top_indices:
+        book_title = encoded_title2[unrated_books_encoded[idx][0]]
+        book_info = df[df['Book-Title'] == book_title].iloc[0]
+        recommendations.append({
+            "title": book_title,
+            "isbn": book_info.get('ISBN', 'N/A'),
+            "author": book_info.get('Book-Author', 'N/A')
+        })
 
-    return RecommendationResponse(user_id=user_id, recommended_books=recommendations)
+    return RecommendationResponse(user_id=random_user_id, recommended_books=recommendations)
+
