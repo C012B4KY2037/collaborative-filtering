@@ -7,6 +7,7 @@ import json
 import tensorflow as tf
 from recommender_net import RecommenderNet
 from tensorflow.keras.models import load_model
+import random
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -40,16 +41,17 @@ try:
 except FileNotFoundError:
     raise RuntimeError("Data file not found. Ensure 'book-ratings.csv' is in the specified path.")
 
-class RecommendationRequest(BaseModel):
-    user_id: str
-
 class RecommendationResponse(BaseModel):
     user_id: str
     recommended_books: list
 
-@app.post("/recommend", response_model=RecommendationResponse)
-def recommend_books(request: RecommendationRequest):
-    user_id = request.user_id
+@app.get("/recommend", response_model=RecommendationResponse)
+def recommend_books():
+    """
+    Automatically generate book recommendations for a randomly chosen user.
+    """
+    # Randomly select a user
+    user_id = random.choice(df['User-ID'].unique())
 
     # Check if the user exists in the encoders
     if user_id not in encode_user_id1:
