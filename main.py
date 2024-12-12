@@ -74,9 +74,9 @@ def recommend_books_random():
         book_title = encoded_title2[unrated_books_encoded[idx][0]]
         book_info = df[df['Book-Title'] == book_title].iloc[0]
         recommendations.append({
-            "title": book_title,
-            "isbn": book_info.get('ISBN', 'N/A'),
-            "author": book_info.get('Book-Author', 'N/A')
+            "ISBN": book_info.get('ISBN', 'N/A'),
+            "Authors": book_info.get('Book-Author', 'N/A'),
+            "Titles": book_title
         })
 
     return RecommendationResponse(user_id=random_user_id, recommended_books=recommendations)
