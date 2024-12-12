@@ -4,6 +4,9 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 import json
+import tensorflow as tf
+from recommender_net import RecommenderNet
+from tensorflow.keras.models import load_model
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -11,7 +14,8 @@ app = FastAPI()
 # Load trained model
 model_path = "./model/collaborative_filtering.keras"
 try:
-    recommender_model = tf.keras.models.load_model(model_path)
+        recommender_model = load_model(model_path)
+    #recommender_model = tf.keras.models.load_model(model_path)
 except Exception as e:
     raise RuntimeError(f"Error loading model: {e}")
 
